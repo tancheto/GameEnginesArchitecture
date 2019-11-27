@@ -20,7 +20,7 @@ void UTimeSlowAbility::Activate(AActor* Source)
 	SpawnParameters.Owner = Source;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	FVector SpawnLocation = Source->GetActorLocation() + Source->GetActorForwardVector() * 400.0f;
+	FVector SpawnLocation = Source->GetActorLocation() + Source->GetActorForwardVector() * 500.0f;
 
 	AActor* TimeSlowSphere = World->SpawnActor<AActor>(TimeSlowSphereClass, SpawnLocation, Source->GetActorRotation(), SpawnParameters);
 

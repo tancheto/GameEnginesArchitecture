@@ -8,6 +8,7 @@
 #include "TopDownARPG.h"
 #include "Math/Vector.h"
 #include "GameFramework/Actor.h"
+#include "TimerManager.h"
 
 // Sets default values
 ATimeSlowSphere::ATimeSlowSphere()
@@ -19,15 +20,12 @@ ATimeSlowSphere::ATimeSlowSphere()
 	SphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
-	SphereComponent->SetCollisionProfileName("OverlapAll");
-	//SphereComponent->InitSphereRadius(48.0f);
-	SphereComponent->SetGenerateOverlapEvents(true);
-
-	//something else
 	RootComponent = SphereComponent;
 
-	SphereComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATimeSlowSphere::OnOverlapIn);
-	SphereComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &ATimeSlowSphere::OnOverlapOut);
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ATimeSlowSphere::OnOverlapIn);
+	SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ATimeSlowSphere::OnOverlapOut);
+
+	SphereComponent->SetGenerateOverlapEvents(true);
 
 	OnOverlapParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	OnOverlapParticle->bAutoActivate = false;
@@ -38,7 +36,25 @@ void ATimeSlowSphere::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetLifeSpan(10);	
+	SetLifeSpan(3.5f);
+	FTimerDelegate TimerDel;
+	FTimerHandle TimerHandle;
+
+	TimerDel.BindUFunction(this, FName("PreDestructionOfSphere"));
+	//Calling PreDestructrionOfSphere after 3 seconds
+	GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 3.4f, false);
+}
+
+void ATimeSlowSphere::PreDestructionOfSphere()
+{
+	UE_LOG(LogTopDownARPG, Display, TEXT("ATimeSlowSphere::PreDestructrionOfSphere"));
+
+	for (AActor* SlowActor : AffectedActors)
+	{
+		SlowActor->CustomTimeDilation = 1.f;
+	}
+
+	AffectedActors.Empty();
 }
 
 void ATimeSlowSphere::OnOverlapIn(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -50,13 +66,13 @@ void ATimeSlowSphere::OnOverlapIn(UPrimitiveComponent* OverlappedComp, AActor* O
 		OnOverlapParticle->ActivateSystem();
 	}
 
-	ATopDownARPGCharacter* Character = Cast<ATopDownARPGCharacter>(Other);
-	if (IsValid(Character))
+	if (IsValid(Other))
 	{
 		Other->CustomTimeDilation = 0.5f;
+		AffectedActors.Add(Other);
 	}
-
 }
+
 void ATimeSlowSphere::OnOverlapOut(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTopDownARPG, Display, TEXT("ATimeSlowSphere::OverlapEnd"));
@@ -66,10 +82,10 @@ void ATimeSlowSphere::OnOverlapOut(UPrimitiveComponent* OverlappedComp, AActor* 
 		OnOverlapParticle->ActivateSystem();
 	}
 
-	ATopDownARPGCharacter* Character = Cast<ATopDownARPGCharacter>(Other);
-	if (IsValid(Character))
+	if (IsValid(Other))
 	{
-		Other->CustomTimeDilation = 2.0f;
+		Other->CustomTimeDilation = 1.f;
+		AffectedActors.Remove(Other);
 	}
 }
 
@@ -83,10 +99,10 @@ void ATimeSlowSphere::Tick(float DeltaTime)
 void ATimeSlowSphere::PostActorCreated()
 {
 	FVector CurrentScale = GetActorScale3D();
-	FVector NewScale = CurrentScale * 300.0f * GetWorld()->GetDeltaSeconds();
+	FVector NewScale = CurrentScale * 1000.0f * GetWorld()->GetDeltaSeconds();
 	SetActorScale3D(NewScale);
 
-	UE_LOG(LogTopDownARPG, Warning, TEXT("CurrentScale: %s; NewScale: %s"),
+	UE_LOG(LogTopDownARPG, Display, TEXT("CurrentScale: %s; NewScale: %s"),
 		*CurrentScale.ToString(), *NewScale.ToString());
 }
 
