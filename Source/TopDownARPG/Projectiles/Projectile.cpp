@@ -21,6 +21,7 @@ AProjectile::AProjectile()
 	RootComponent = SphereComponent;
 
 	SphereComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &AProjectile::OnOverlap);
+	SphereComponent->SetGenerateOverlapEvents(true);
 
 	OnOverlapParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 	OnOverlapParticle->bAutoActivate = false;
