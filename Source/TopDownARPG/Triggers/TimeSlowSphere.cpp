@@ -18,7 +18,7 @@ ATimeSlowSphere::ATimeSlowSphere()
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
 	RootComponent = SphereComponent;
 
@@ -68,7 +68,7 @@ void ATimeSlowSphere::OnOverlapIn(UPrimitiveComponent* OverlappedComp, AActor* O
 
 	if (IsValid(Other))
 	{
-		Other->CustomTimeDilation = 0.5f;
+		Other->CustomTimeDilation = 0.3f;
 		AffectedActors.Add(Other);
 	}
 }
@@ -99,7 +99,7 @@ void ATimeSlowSphere::Tick(float DeltaTime)
 void ATimeSlowSphere::PostActorCreated()
 {
 	FVector CurrentScale = GetActorScale3D();
-	FVector NewScale = CurrentScale * 1000.0f * GetWorld()->GetDeltaSeconds();
+	FVector NewScale = CurrentScale * 800.0f * GetWorld()->GetDeltaSeconds();
 	SetActorScale3D(NewScale);
 
 	UE_LOG(LogTopDownARPG, Display, TEXT("CurrentScale: %s; NewScale: %s"),
