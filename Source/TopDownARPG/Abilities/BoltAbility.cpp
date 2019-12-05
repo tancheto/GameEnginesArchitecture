@@ -20,7 +20,7 @@ void UBoltAbility::Activate(AActor* Source)
 	SpawnParameters.Owner = Source;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	FVector SpawnLocation = Source->GetActorLocation() + Source->GetActorForwardVector() * 100.0f;
+	FVector SpawnLocation = Source->GetActorLocation() + Source->GetActorForwardVector() * 300.0f;
 
 	AActor* Projectile = World->SpawnActor<AActor>(ProjectileClass, SpawnLocation, Source->GetActorRotation(), SpawnParameters);
 	if (IsValid(Projectile) == false)
